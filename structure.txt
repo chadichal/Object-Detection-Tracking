@@ -1,0 +1,57 @@
+Project: Object Detection & Tracking (YOLOv8 + Deep SORT)
+
+Root Directory:
+.
+├── app.py                  # Flask backend with YOLOv8 + Deep SORT + SQLite + screenshot capture API
+├── index.html              # Single-page black & navy blue frontend (HTML + CSS + JS)
+├── sort.py                 # Tracking / SORT / Deep SORT support logic (if used directly)
+├── yolov8n.pt              # YOLOv8 nano model weights (pretrained on COCO)
+├── requirements.txt        # Python dependencies for backend
+├── screenshots/            # Folder where captured screenshot images are saved (auto-created at runtime)
+└── screenshots.db          # SQLite database file storing screenshot metadata (auto-created at runtime)
+
+Notes:
+- VIDEO_SOURCE inside app.py can be 0 (webcam) or a path to your MP4 videos (traffic signals, no-helmet, lane violation, theft detection, etc.).
+- The frontend calls:
+    - /video_feed   → real-time MJPEG stream with detection + tracking
+    - /capture      → takes a screenshot of the current frame and stores it in screenshots/ and screenshots.db
+    - /health       → simple health-check endpoint for UI status badges
+Object Detection Tracking/
+│
+├── app.py                          # Main Flask backend application
+├── index.html                       # Frontend HTML template
+├── requirements.txt                  # Python dependencies
+├── install_fixed.bat                 # Windows installation script
+│
+├── templates/                        # Flask templates folder
+│   └── index.html                    # Copied from root index.html
+│
+├── static/                           # Static files folder
+│   ├── screenshots/                   # Saved screenshots directory
+│   │   └── screenshot_20240315_143022.jpg  # Example screenshot
+│   │
+│   ├── css/                           # CSS files (optional)
+│   │   └── style.css
+│   │
+│   └── js/                            # JavaScript files (optional)
+│       └── main.js
+│
+├── uploads/                           # Uploaded video files
+│   ├── test.mp4
+│   └── sample_video.avi
+│
+├── models/                            # Pre-trained models
+│   ├── yolov8n.pt                      # YOLOv8 nano model
+│   ├── yolov8s.pt                      # YOLOv8 small model
+│   ├── yolov8m.pt                      # YOLOv8 medium model
+│   └── faster_rcnn.pth                  # Faster R-CNN model
+│
+├── logs/                              # Application logs
+│   └── app.log
+│
+├── venv/                              # Python virtual environment
+│   ├── Scripts/
+│   ├── Lib/
+│   └── pyvenv.cfg
+│
+└── README.md                          # Project documentation

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Object Detection & Tracking System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        /*Navbar*/
+        .navbar {
+            background: linear-gradient(135deg, #000000 0%, #000080 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #000080;
+            box-shadow: 0 4px 20px rgba(0, 0, 128, 0.3);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ffffff, #4169E1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            background-color: #000080;
+            transform: translateY(-2px);
+        }
+        
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #4169E1;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .container {
+            margin-top: 80px;
+            padding: 2rem;
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(0,0,128,0.8) 100%);
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            border: 1px solid #000080;
+            box-shadow: 0 0 30px rgba(0,0,128,0.3);
+            animation: glow 3s infinite;
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 30px rgba(0,0,128,0.3); }
+            50% { box-shadow: 0 0 50px rgba(65,105,225,0.5); }
+            100% { box-shadow: 0 0 30px rgba(0,0,128,0.3); }
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #4169E1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #cccccc;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .video-panel {
+            background: linear-gradient(135deg, #0a0a0a 0%, #000040 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid #000080;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #000080;
+        }
+
+        .panel-header h2 {
+            color: #4169E1;
+            font-size: 1.5rem;
+        }
+
+        .status-badge {
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background-color: #00ff00;
+            color: #000000;
+            animation: pulse 2s infinite;
+        }
+
+        .status-inactive {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #000000;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #000080;
+        }
+
+        #videoFeed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            border-left: 3px solid #4169E1;
+        }
+
+        .control-panel {
+            background: linear-gradient(135deg, #0a0a0a 0%, #000040 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid #000080;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4169E1;
+            font-weight: bold;
+        }
+
+        .input-group select, .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #000000;
+            border: 2px solid #000080;
+            color: #ffffff;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group select:focus, .input-group input:focus {
+            border-color: #4169E1;
+            outline: none;
+            box-shadow: 0 0 15px rgba(65,105,225,0.3);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #000080, #4169E1);
+            color: #ffffff;
+        }
+
+        .btn-secondary {
+            background: #000000;
+            color: #ffffff;
+            border: 2px solid #000080;
+        }
+
+        .btn-danger {
+            background: #8b0000;
+            color: #ffffff;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,128,0.5);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #0a0a0a 0%, #000040 100%);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid #000080;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,128,0.4);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4169E1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #cccccc;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .detection-list {
+            background: linear-gradient(135deg, #0a0a0a 0%, #000040 100%);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .detection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #000080;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .detection-class {
+            color: #4169E1;
+            font-weight: bold;
+        }
+
+        .detection-id {
+            color: #ffffff;
+            background: #000080;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .detection-conf {
+            color: #00ff00;
+        }
+
+        .metrics-panel {
+            background: linear-gradient(135deg, #0a0a0a 0%, #000040 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid #000080;
+            margin-top: 2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .metric-item {
+            text-align: center;
+        }
+
+        .metric-label {
+            color: #4169E1;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #000000;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #000080;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #000080, #4169E1);
+            transition: width 0.5s ease;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid #000080;
+            color: #666;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .nav-links {
+                margin-top: 1rem;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #000080;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4169E1;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">AI Vision Pro</div>
+        <div class="nav-links">
+            <a href="#dashboard">Dashboard</a>
+            <a href="#analytics">Analytics</a>
+            <a href="#settings">Settings</a>
+            <a href="#logs">Logs</a>
+            <a href="#help">Help</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section class="hero">
+            <h1>Real-Time Object Detection & Tracking</h1>
+            <p>Live detection with YOLOv8 and Deep SORT. Choose feed: Traffic (cars, bus, person), Robber, or Crook. Screenshots auto-save to SQLite.</p>
+        </section>
+
+                    <div class="video-container">
+                    <img id="videoFeed" src="" alt="Live Object Detection Feed">
+                    <div class="video-overlay" id="fpsCounter">Real-time detection</div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <h3 style="color: #4169E1; margin-bottom: 0.5rem;">Active Detections</h3>
+                    <div class="detection-list" id="detectionList">
+                        <div class="detection-item">
+                            <span class="detection-class">Person</span>
+                            <span class="detection-id">ID: 001</span>
+                            <span class="detection-conf">98%</span>
+                        </div>
+                        <div class="detection-item">
+                            <span class="detection-class">Car</span>
+                            <span class="detection-id">ID: 002</span>
+                            <span class="detection-conf">95%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <-- Dashboard Grid -->
+        <!-- <div class="dashboard-grid">
+            <!-- Video Panel -->
+            <div class="video-panel">
+                <div class="panel-header">
+                    <h2>Live Feed</h2>
+
+                    <span class="status-badge status-active" id="statusBadge">Active</span>
+                </div>
+                <div class="input-group">
+                    <label>Active Feed / Video Route</label>
+                    <select id="videoRoute">
+                        <option value="traffic">Traffic (cars, bus, person)</option>
+                        <option value="robber">Robber</option>
+                        <option value="crook">Crook</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Custom video path (optional, for selected route)</label>
+                    <input type="text" id="customVideoPath" placeholder="C:\path\to\video.mp4">
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="startBtn">Start Live Feed</button>
+                    <button class="btn btn-secondary" id="stopBtn">Stop Feed</button>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-danger" id="screenshotBtn">Screenshot (save to DB)</button>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <h3 style="color: #4169E1; margin-bottom: 0.5rem;">System Info</h3>
+                    <div style="display: grid; gap: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>GPU Status:</span>
+                            <span style="color: #00ff00;" id="gpuStatus">—</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Memory Usage:</span>
+                            <span id="memUsage">—</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Processing Time:</span>
+                            <span id="procTime">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalObjects">0</div>
+                <div class="stat-label">Total Objects</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeTracks">0</div>
+                <div class="stat-label">Active Tracks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="fps">0</div>
+                <div class="stat-label">FPS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="latency">—</div>
+                <div class="stat-label">Latency</div>
+            </div>
+        </div>
+
+        <div class="metrics-panel">
+            <div class="panel-header">
+                <h2>Performance Metrics</h2>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-label">mAP (Accuracy)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 89%"></div>
+                    </div>
+                    <div>89%</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">MOTA (Tracking)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 82%"></div>
+                    </div>
+                    <div>82%</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">IDF1 (ID Accuracy)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 86%"></div>
+                    </div>
+                    <div>86%</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem;">
+            <div class="control-panel">
+                <h3 style="color: #4169E1; margin-bottom: 1rem;">Movement Prediction</h3>
+                <div id="trajectoryInfo">
+                    <div>Next position: (320, 240)</div>
+                    <div>Confidence: 87%</div>
+                </div>
+            </div>
+            <div class="control-panel">
+                <h3 style="color: #4169E1; margin-bottom: 1rem;">Risk Analysis</h3>
+                <div id="riskInfo">
+                    <div>Risk Level: Low</div>
+                    <div>Score: 23/100</div>
+                </div>
+            </div>
+            <div class="control-panel">
+                <h3 style="color: #4169E1; margin-bottom: 1rem;">Crowd Density</h3>
+                <div id="crowdInfo">
+                    <div>Density: Medium</div>
+                    <div>Count: 12 people</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2024 AI Vision Pro - Advanced Object Detection & Tracking System | All Rights Reserved</p>
+        </div>
+    </div>
+
+    <script>
+        let isActive = false;
+        const videoFeed = document.getElementById('videoFeed');
+        const statusBadge = document.getElementById('statusBadge');
+        const fpsCounter = document.getElementById('fpsCounter');
+        const detectionList = document.getElementById('detectionList');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const screenshotBtn = document.getElementById('screenshotBtn');
+        const videoRoute = document.getElementById('videoRoute');
+        const customVideoPath = document.getElementById('customVideoPath');
+        const totalObjects = document.getElementById('totalObjects');
+        const activeTracks = document.getElementById('activeTracks');
+        const fpsEl = document.getElementById('fps');
+        const latencyEl = document.getElementById('latency');
+
+        function setStatus(active) {
+            isActive = active;
+            if (active) {
+                statusBadge.textContent = 'Active';
+                statusBadge.className = 'status-badge status-active';
+            } else {
+                statusBadge.textContent = 'Inactive';
+                statusBadge.className = 'status-badge status-inactive';
+            }
+        }
+
+        let healthInterval = null;
+
+        function pollHealth() {
+            if (!isActive) return;
+            fetch('/health')
+                .then(r => r.json())
+                .then(d => {
+                    if (d.device) document.getElementById('gpuStatus').textContent = d.device === 'cuda' ? 'CUDA Enabled' : 'CPU';
+                    if (d.fps != null) fpsEl.textContent = Math.round(d.fps);
+                    if (d.latency != null) latencyEl.textContent = d.latency;
+                })
+                .catch(() => {});
+        }
+
+        startBtn.addEventListener('click', async () => {
+            if (isActive) return;
+            const route = videoRoute.value;
+            const videoPath = customVideoPath.value.trim();
+            try {
+                await fetch('/api/switch_route', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ route, video_path: videoPath || undefined })
+                });
+            } catch (e) {}
+            setStatus(true);
+            videoFeed.src = '/video_feed';
+            if (healthInterval) clearInterval(healthInterval);
+            healthInterval = setInterval(pollHealth, 2000);
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (!isActive) return;
+            setStatus(false);
+            videoFeed.src = '';
+            if (healthInterval) {
+                clearInterval(healthInterval);
+                healthInterval = null;
+            }
+        });
+
+        videoRoute.addEventListener('change', async () => {
+            const route = videoRoute.value;
+            const videoPath = customVideoPath.value.trim();
+            try {
+                const response = await fetch('/api/switch_route', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ route, video_path: videoPath || undefined })
+                });
+                if (response.ok && isActive) {
+                    videoFeed.src = '/video_feed?' + Date.now();
+                }
+            } catch (e) {}
+        });
+
+        screenshotBtn.addEventListener('click', async () => {
+            if (!isActive) {
+                alert('Start Live Feed first, then take a screenshot.');
+                return;
+            }
+            try {
+                const response = await fetch('/capture', { method: 'POST' });
+                const data = await response.json();
+                if (response.ok && data.saved) {
+                    let preview = document.getElementById('lastScreenshot');
+                    if (!preview) {
+                        preview = document.createElement('img');
+                        preview.id = 'lastScreenshot';
+                        preview.alt = 'Last Screenshot';
+                        preview.style.marginTop = '1rem';
+                        preview.style.width = '100%';
+                        preview.style.borderRadius = '8px';
+                        preview.style.border = '2px solid #000080';
+                        document.querySelector('.video-panel').appendChild(preview);
+                    }
+                    preview.src = (data.image_url || '/screenshots/' + data.filename) + '?t=' + Date.now();
+                    alert('Screenshot saved to database (SQLite).');
+                } else {
+                    alert(data.error || 'Failed to save screenshot.');
+                }
+            } catch (e) {
+                alert('Error capturing screenshot.');
+            }
+        });
+    </script>
+</body>
+</html>  
